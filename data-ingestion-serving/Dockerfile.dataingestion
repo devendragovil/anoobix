@@ -1,0 +1,9 @@
+FROM python:3.11.6
+COPY .env /app/
+COPY requirements_dis.txt /app/
+COPY data-ingestion-serving /app/data-ingestion-serving/
+WORKDIR /app
+RUN pip install -r requirements_dis.txt
+RUN pwd
+RUN ls -alF
+CMD python /app/data-ingestion-serving/dataingestion_service.py
