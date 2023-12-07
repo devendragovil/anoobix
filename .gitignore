@@ -2,6 +2,7 @@
 .venv/*
 .dis/*
 .weather-ing/*
+.app/*
 
 # Mac-OS related stuff
 .DS_Store/*
