@@ -42,8 +42,7 @@ consumer_config = {
     'key.deserializer': StringDeserializer('utf_8'),
     'value.deserializer': value_deserializer,
     'group.id': os.environ['CONSUMER_GROUP_ID'],
-    'auto.offset.reset': 'earliest',
-    'enable.auto.commit': 'false'
+    'auto.offset.reset': 'latest'
 }
 consumer = DeserializingConsumer(consumer_config)
 
