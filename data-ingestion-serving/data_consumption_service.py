@@ -75,10 +75,10 @@ def processing_feed(feed: gtfs_realtime_pb2.FeedMessage) -> None:
                     'S': stop_id
                 },
                 'delay': {
-                    'N': delay
+                    'S': str(delay)
                 },
                 'time_expected': {
-                    'N': time_expected
+                    'S': str(time_expected)
                 }
             }
             ddb.put_item(
