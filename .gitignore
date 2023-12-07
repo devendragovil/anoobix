@@ -8,3 +8,6 @@
 # Note: Terraform state files can contain secrets
 terraform/.terraform
 terraform/*.lock.hcl
+terraform/*.lock.info
+terraform/*.tfstate
+terraform/*.tfstate.backup
