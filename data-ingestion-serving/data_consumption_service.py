@@ -10,9 +10,12 @@ from google.transit import gtfs_realtime_pb2
 import boto3
 from typing import List
 
+
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
+
+logger.info("Starting the script...")
 
 KAFKA_CONFIG = {
         "bootstrap.servers": os.getenv("BOOTSTRAP_SERVERS"),
@@ -57,7 +60,7 @@ def processing_feed(feed: gtfs_realtime_pb2.FeedMessage) -> None:
     timestamp_id = str(feed.header.timestamp)
     for entity in feed.entity:
         trip_id = entity.id
-        for stop_time_update in feed.entity.trip_update.stop_time_update:
+        for stop_time_update in entity.trip_update.stop_time_update:
             stop_id = stop_time_update.stop_id
             delay = stop_time_update.arrival.delay
             time_expected = stop_time_update.arrival.time
@@ -83,11 +86,12 @@ def processing_feed(feed: gtfs_realtime_pb2.FeedMessage) -> None:
                 TableName='trip-stream'
             )
 
-
+logger.info("Starting consumption...")
 
 try:
     while True:
         msg = consumer.poll(0.1)
+        logger.info("Polling completed...")
         if msg is None:
             time.sleep(1)
             continue
@@ -106,7 +110,9 @@ try:
         message_string = trip_data['message']
         feed = gtfs_realtime_pb2.FeedMessage()
         feed.ParseFromString(message_string)
-        
+        processing_feed(feed=feed)
+        logger.info('processing done')
+        print(f'Processed Message : {timestamp_id}')
 except KeyboardInterrupt:
     logger.info("Consumer interrupted by the user.")
 finally:
