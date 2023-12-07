@@ -58,7 +58,10 @@ bt3s = boto3.Session(region_name='us-west-2',
 ddb = bt3s.client('dynamodb')
 
 def processing_feed(feed: gtfs_realtime_pb2.FeedMessage) -> None:
+    # Extracting timestamp
     timestamp_id = str(feed.header.timestamp)
+
+    # Iterating over each entity
     for entity in feed.entity:
         trip_id = entity.id
         stop_time_update_dict = {
@@ -67,14 +70,20 @@ def processing_feed(feed: gtfs_realtime_pb2.FeedMessage) -> None:
             'time_expected': []
 
         }
+
+        # Iterating over each stop_time_update of each entity
         for stop_time_update in entity.trip_update.stop_time_update:
+            # Extracting values for required fields
             stop_id = stop_time_update.stop_id
             delay = stop_time_update.arrival.delay
             time_expected = stop_time_update.arrival.time
+
+            # Appending to dict for producing a single dict for an entity to speed up code
             stop_time_update_dict['delay'].append(delay)
             stop_time_update_dict['stop_id'].append(stop_id)
             stop_time_update_dict['time_expected'].append(time_expected)
         
+        # Serialize the dictionary to a string representation for JSON.
         stop_time_update_dict_string = json.dumps(stop_time_update_dict)
         
         uuid_val = str(uuid.uuid4()) + str(uuid.uuid4())
@@ -113,13 +122,18 @@ try:
             else:
                 logger.error(msg.error())
             continue
-
+        
+        # Parsing message
         trip_data = msg.value().model_dump()
         timestamp_id = trip_data['timestamp_id']
         message_string = trip_data['message']
+
+        # Parsing message string from the protobuf format
         feed = gtfs_realtime_pb2.FeedMessage()
         feed.ParseFromString(message_string)
         print(time.ctime(int(timestamp_id)))
+
+        # Processing feed for insertion in DynamoDB
         processing_feed(feed=feed)
         logger.info(f'Processed Message : {timestamp_id}')
 except KeyboardInterrupt:

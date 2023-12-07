@@ -123,18 +123,40 @@ class ProducerCallback:
 pc1 = ProducerCallback()
 
 while True:
-    time.sleep(30)
-    feed = gtfs_realtime_pb2.FeedMessage()
-    response = requests.get(BART_LINK)
-    feed.ParseFromString(response.content)
-    timestamp_id = str(feed.header.timestamp)
-    message_string = feed.SerializeToString()
+    try:
+        # Sleeping for 30 seconds before reading the next stream
+        time.sleep(30)
 
-    trip_message = TripMessageModel(timestamp_id=timestamp_id, message=message_string)
-    producer.produce(
-        topic=os.getenv("TOPIC_NAME"),
-        key=f'trip-details-{timestamp_id}',
-        value=trip_message,
-        on_delivery=pc1
-    )
-    producer.flush()
+        feed = gtfs_realtime_pb2.FeedMessage()
+        
+        # Reading the stream from BART using requests
+        response = requests.get(BART_LINK)
+
+        # Parsing the stream using gtfs_realtime_pb2.FeedMessage
+        feed.ParseFromString(response.content)
+
+        # setting up message
+        timestamp_id = str(feed.header.timestamp)
+        message_string = feed.SerializeToString()
+
+        trip_message = TripMessageModel(timestamp_id=timestamp_id, message=message_string)
+
+        # Producing Message synchronously
+        producer.produce(
+            topic=os.getenv("TOPIC_NAME"),
+            key=f'trip-details-{timestamp_id}',
+            value=trip_message,
+            on_delivery=pc1
+        )
+        producer.flush()
+    except Exception as e:
+        logger.info(
+            f"""
+            Failed to produce messages, there was an exception raised.
+
+            More details:
+            {e.__repr__()}
+
+            Please investigate.
+            """
+        )
