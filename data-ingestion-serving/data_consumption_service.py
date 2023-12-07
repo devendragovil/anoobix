@@ -65,10 +65,10 @@ def processing_feed(feed: gtfs_realtime_pb2.FeedMessage) -> None:
             stop_id = stop_time_update.stop_id
             delay = stop_time_update.arrival.delay
             time_expected = stop_time_update.arrival.time
-            uuid = str(uuid.uuid4()) + str(uuid.uuid4())
+            uuid_val = str(uuid.uuid4()) + str(uuid.uuid4())
             item = {
-                'uuid': {
-                    'S': uuid
+                'uuid_val': {
+                    'S': uuid_val
                 },
                 'timestamp_id': {
                     'S': timestamp_id
