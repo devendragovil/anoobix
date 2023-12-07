@@ -9,9 +9,9 @@ resource "aws_vpc" "anoobix-vpc" {
 }
 
 resource "aws_subnet" "anoobix-public-subnet" {
-  vpc_id                  = aws_vpc.anoobix-vpc.id
-  cidr_block              = "10.123.1.0/24"
-  availability_zone       = "us-west-2a"
+  vpc_id            = aws_vpc.anoobix-vpc.id
+  cidr_block        = "10.123.1.0/24"
+  availability_zone = "us-west-2a"
 
   tags = {
     project = "anoobix"

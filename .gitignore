@@ -1,5 +1,7 @@
 # Python venv
 .venv/*
+.dis/*
+.weather-ing/*
 
 # Mac-OS related stuff
 .DS_Store/*
@@ -12,5 +14,9 @@ terraform/*.lock.info
 terraform/*.tfstate
 terraform/*.tfstate.backup
 
-# .env 
+# Secrets 
 .env
+.secret
+
+# Pycache
+data-ingestion-serving/__pycache__/*
