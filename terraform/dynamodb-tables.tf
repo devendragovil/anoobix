@@ -3,10 +3,10 @@ resource "aws_dynamodb_table" "anoobix-dynamodb-triptable" {
   billing_mode   = "PROVISIONED"
   read_capacity  = 10
   write_capacity = 5
-  hash_key       = "uuid_val"
+  hash_key       = "uuid_value"
 
   attribute {
-    name = "uuid_val"
+    name = "uuid_value"
     type = "S"
   }
 }
