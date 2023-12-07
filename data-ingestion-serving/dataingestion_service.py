@@ -123,7 +123,7 @@ class ProducerCallback:
 pc1 = ProducerCallback()
 
 while True:
-    time.sleep(5)
+    time.sleep(30)
     feed = gtfs_realtime_pb2.FeedMessage()
     response = requests.get(BART_LINK)
     feed.ParseFromString(response.content)

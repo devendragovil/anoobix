@@ -98,7 +98,6 @@ try:
         msg = consumer.poll(0.2)
         logger.info("Polling completed...")
         if msg is None:
-            # time.sleep(1)
             continue
         if msg.error():
             if msg.error().code() == KafkaError._PARTITION_EOF:
@@ -107,7 +106,6 @@ try:
                             .format(msg.topic(), msg.partition()))
             else:
                 logger.error(msg.error())
-            # time.sleep(1)
             continue
 
         trip_data = msg.value().model_dump()
