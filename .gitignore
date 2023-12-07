@@ -4,3 +4,7 @@
 # Mac-OS related stuff
 .DS_Store/*
 
+# Terraform State files and other unnecessary details
+# Note: Terraform state files can contain secrets
+terraform/.terraform
+terraform/*.lock.hcl
