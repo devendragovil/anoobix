@@ -10,6 +10,7 @@ from google.transit import gtfs_realtime_pb2
 import boto3
 from typing import List
 import uuid
+import json
 
 
 load_dotenv()
@@ -60,14 +61,26 @@ def processing_feed(feed: gtfs_realtime_pb2.FeedMessage) -> None:
     timestamp_id = str(feed.header.timestamp)
     for entity in feed.entity:
         trip_id = entity.id
-        stop_time_update = entity.trip_update.stop_time_update[0]
-        stop_id = stop_time_update.stop_id
-        delay = stop_time_update.arrival.delay
-        time_expected = stop_time_update.arrival.time
-        uuid_value = str(uuid.uuid4()) + str(uuid.uuid4())
+        stop_time_update_dict = {
+            'stop_id': [],
+            'delay': [],
+            'time_expected': []
+
+        }
+        for stop_time_update in entity.trip_update.stop_time_update:
+            stop_id = stop_time_update.stop_id
+            delay = stop_time_update.arrival.delay
+            time_expected = stop_time_update.arrival.time
+            stop_time_update_dict['delay'].append(delay)
+            stop_time_update_dict['stop_id'].append(stop_id)
+            stop_time_update_dict['time_expected'].append(time_expected)
+        
+        stop_time_update_dict_string = json.dumps(stop_time_update_dict)
+        
+        uuid_val = str(uuid.uuid4()) + str(uuid.uuid4())
         item = {
-            'uuid_value': {
-                'S': uuid_value
+            'uuid_val': {
+                'S': uuid_val
             },
             'timestamp_id': {
                 'S': timestamp_id
@@ -75,14 +88,8 @@ def processing_feed(feed: gtfs_realtime_pb2.FeedMessage) -> None:
             'trip_id': {
                 'S': trip_id
             },
-            'stop_id': {
-                'S': stop_id
-            },
-            'delay': {
-                'S': str(delay)
-            },
-            'time_expected': {
-                'S': str(time_expected)
+            'stop_time_update_dict': {
+                'S': stop_time_update_dict_string
             }
         }
         ddb.put_item(
