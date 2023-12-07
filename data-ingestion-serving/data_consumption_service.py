@@ -7,6 +7,8 @@ from confluent_kafka.schema_registry.avro import AvroDeserializer
 from confluent_kafka.serialization import StringDeserializer
 from confluent_kafka.error import KafkaError
 from google.transit import gtfs_realtime_pb2
+import boto3
+from typing import List
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -45,6 +47,44 @@ topic_initializing = os.getenv("TOPIC_NAME")
 logger.info(f"Initializing Consumption for topic: {topic_initializing}")
 consumer.subscribe([topic_initializing])
 
+bt3s = boto3.Session(region_name='us-west-2',
+    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
+)
+ddb = bt3s.client('dynamodb')
+
+def processing_feed(feed: gtfs_realtime_pb2.FeedMessage) -> None:
+    timestamp_id = str(feed.header.timestamp)
+    for entity in feed.entity:
+        trip_id = entity.id
+        for stop_time_update in feed.entity.trip_update.stop_time_update:
+            stop_id = stop_time_update.stop_id
+            delay = stop_time_update.arrival.delay
+            time_expected = stop_time_update.arrival.time
+            item = {
+                'timestamp_id': {
+                    'S': timestamp_id
+                },
+                'trip_id': {
+                    'S': trip_id
+                },
+                'stop_id': {
+                    'S': stop_id
+                },
+                'delay': {
+                    'N': delay
+                },
+                'time_expected': {
+                    'N': time_expected
+                }
+            }
+            ddb.put_item(
+                Item=item,
+                TableName='trip-stream'
+            )
+
+
+
 try:
     while True:
         msg = consumer.poll(0.1)
@@ -66,7 +106,7 @@ try:
         message_string = trip_data['message']
         feed = gtfs_realtime_pb2.FeedMessage()
         feed.ParseFromString(message_string)
-        print(feed)
+        
 except KeyboardInterrupt:
     logger.info("Consumer interrupted by the user.")
 finally:
