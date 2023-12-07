@@ -9,6 +9,7 @@ from confluent_kafka.error import KafkaError
 from google.transit import gtfs_realtime_pb2
 import boto3
 from typing import List
+import uuid
 
 
 load_dotenv()
@@ -64,7 +65,11 @@ def processing_feed(feed: gtfs_realtime_pb2.FeedMessage) -> None:
             stop_id = stop_time_update.stop_id
             delay = stop_time_update.arrival.delay
             time_expected = stop_time_update.arrival.time
+            uuid = str(uuid.uuid4()) + str(uuid.uuid4())
             item = {
+                'uuid': {
+                    'S': uuid
+                },
                 'timestamp_id': {
                     'S': timestamp_id
                 },
@@ -110,9 +115,9 @@ try:
         message_string = trip_data['message']
         feed = gtfs_realtime_pb2.FeedMessage()
         feed.ParseFromString(message_string)
+        print(time.ctime(int(timestamp_id)))
         processing_feed(feed=feed)
-        logger.info('processing done')
-        print(f'Processed Message : {timestamp_id}')
+        logger.info(f'Processed Message : {timestamp_id}')
 except KeyboardInterrupt:
     logger.info("Consumer interrupted by the user.")
 finally:
